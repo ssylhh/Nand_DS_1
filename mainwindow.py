@@ -3,6 +3,7 @@ import os
 import csv
 from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QTextEdit, QFileDialog, QLabel
 from PySide6.QtCore import QTimer
+from QWorker import Worker 
 # from PySide6.QtCore import QMetaObject, Qt
 # from PySide6.QtCore import QTimer
 
@@ -157,17 +158,38 @@ class MainWindow(QMainWindow):
         self.writeNANDVParam()
         self.writeNANDLParam()
 
+    # def read_4_button_click(self):
+    #     self.readNANDVParam()
+    #     self.readNANDOSLBLUT1()
+    #     self.readNANDTargetLUT()
+
+    #     self.readNANDTempGainMap()
+    #     self.readNANDTempOffsetMap()
+    #     self.readNANDRemainTempMap()
+
+    #     self.readNANDWCAMap()
+    #     self.readNANDOSLBPRNGLUT()
+
     def read_4_button_click(self):
-        self.readNANDVParam()
-        self.readNANDOSLBLUT1()
-        self.readNANDTargetLUT()
+        # 실행할 작업 리스트
+        tasks = [
+            self.readNANDVParam,
+            self.readNANDOSLBLUT1,
+            self.readNANDTargetLUT,
+            self.readNANDTempGainMap,
+            self.readNANDTempOffsetMap,
+            self.readNANDRemainTempMap,
+            self.readNANDWCAMap,
+            self.readNANDOSLBPRNGLUT,
+        ]
 
-        self.readNANDTempGainMap()
-        self.readNANDTempOffsetMap()
-        self.readNANDRemainTempMap()
+        # Worker 스레드 시작
+        self.worker = Worker(tasks)
+        self.worker.task_finished.connect(self.log_message)  # 개별 작업 완료 시그널
+        self.worker.finished.connect(self.on_all_tasks_finished)  # 모든 작업 완료 시그널
+        self.worker.error.connect(self.log_message)  # 에러 시그널
+        self.worker.start()
 
-        self.readNANDWCAMap()
-        self.readNANDOSLBPRNGLUT()
 
     def write_4_button_click(self):
         self.writeNANDVParam()
